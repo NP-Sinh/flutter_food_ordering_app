@@ -3,7 +3,8 @@ import 'package:food_ordering_app/models/NguoiDung.dart';
 import 'package:http/http.dart' as http;
 
 class ApiNguoiDung {
-  final String baseUri = "https://localhost:7106/api/NguoiDung";
+  final String baseUri = "http://10.0.2.2:5000/api/NguoiDung";
+  // final String baseUri = 'http://localhost:5000/api/NguoiDung';
 
   Future<List<NguoiDung>> getNguoiDungData() async {
     List<NguoiDung> data = [];
@@ -61,7 +62,7 @@ class ApiNguoiDung {
         body: json.encode(nguoiDung.toJson()),
       );
     } catch (e) {
-      rethrow;
+      return response;
     }
     return response;
   }

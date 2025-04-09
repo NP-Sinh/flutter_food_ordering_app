@@ -3,13 +3,13 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:intl/intl.dart';
 
-import 'package:food_ordering_app/api/api_nguoidung.dart';
-import 'package:food_ordering_app/models/NguoiDung.dart';
-import 'package:food_ordering_app/const/colors.dart';
-import 'package:food_ordering_app/pages/Login_Signup/login.dart';
-import 'package:food_ordering_app/utils/helper.dart';
+import '../api/api_nguoidung.dart';
+import '../models/NguoiDung.dart';
+import '../const/colors.dart';
+import '../screens/loginScreen.dart';
+import '../utils/helper.dart';
 // ignore: unused_import
-import 'package:food_ordering_app/widgets/customTextInput.dart';
+import '../widgets/customTextInput.dart';
 
 class SignUpPage extends StatefulWidget {
   static const routeName = '/SignUpPage';
@@ -170,7 +170,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     onTap: () {
                       Navigator.of(
                         context,
-                      ).pushReplacementNamed(Login.routeName);
+                      ).pushReplacementNamed(LoginScreen.routeName);
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

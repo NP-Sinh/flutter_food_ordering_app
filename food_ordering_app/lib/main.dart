@@ -1,19 +1,104 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:food_ordering_app/configs/DevHttpsOveride.dart';
 import 'package:food_ordering_app/pages/NguoiDung/nguoidung_page.dart';
-import 'package:food_ordering_app/pages/Wellcome/wellcome_page.dart';
+import 'package:food_ordering_app/screens/changeAddressScreen.dart';
+
+import './screens/spashScreen.dart';
+import 'package:food_ordering_app/pages/Welcome/Welcome_Page.dart';
+import 'package:food_ordering_app/pages/Login_Signup/login.dart';
+import 'package:food_ordering_app/pages/Login_Signup/signup_page.dart';
+import './screens/forgetPwScreen.dart';
+import './screens/sentOTPScreen.dart';
+import './screens/newPwScreen.dart';
+import './screens/introScreen.dart';
+import './screens/homeScreen.dart';
+import './screens/menuScreen.dart';
+import './screens/moreScreen.dart';
+import './screens/offerScreen.dart';
+import './screens/profileScreen.dart';
+import './screens/dessertScreen.dart';
+import './screens/individualItem.dart';
+import './screens/paymentScreen.dart';
+import './screens/notificationScreen.dart';
+import './screens/aboutScreen.dart';
+import './screens/inboxScreen.dart';
+import './screens/myOrderScreen.dart';
+import './screens/checkoutScreen.dart';
+import './const/colors.dart';
 
 void main() {
-  runApp(const MainApp());
+  HttpOverrides.global = new DevHttpOverrides();
+  runApp(MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        fontFamily: "Metropolis",
+        primarySwatch: Colors.red,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColor.orange),
+            shape: MaterialStateProperty.all(StadiumBorder()),
+            elevation: MaterialStateProperty.all(0),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all(AppColor.orange),
+          ),
+        ),
+        textTheme: TextTheme(
+          displaySmall: TextStyle(
+            color: AppColor.primary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+          headlineLarge: TextStyle(
+            color: AppColor.secondary,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+          headlineMedium: TextStyle(
+            color: AppColor.primary,
+            fontWeight: FontWeight.normal,
+            fontSize: 25,
+          ),
+          headlineSmall: TextStyle(color: AppColor.primary, fontSize: 25),
+          bodyMedium: TextStyle(color: AppColor.secondary),
+        ),
+      ),
       debugShowCheckedModeBanner: false,
-      home: WellcomPage(),
+      home: SplashScreen(),
+      routes: {
+        WelcomePage.routeName: (context) => WelcomePage(),
+        Login.routeName: (context) => Login(),
+        SignUpPage.routeName: (context) => SignUpPage(),
+        ForgetPwScreen.routeName: (context) => ForgetPwScreen(),
+        SendOTPScreen.routeName: (context) => SendOTPScreen(),
+        NewPwScreen.routeName: (context) => NewPwScreen(),
+        IntroScreen.routeName: (context) => IntroScreen(),
+        HomeScreen.routeName: (context) => HomeScreen(),
+        MenuScreen.routeName: (context) => MenuScreen(),
+        OfferScreen.routeName: (context) => OfferScreen(),
+        ProfileScreen.routeName: (context) => ProfileScreen(),
+        MoreScreen.routeName: (context) => MoreScreen(),
+        DessertScreen.routeName: (context) => DessertScreen(),
+        IndividualItem.routeName: (context) => IndividualItem(),
+        PaymentScreen.routeName: (context) => PaymentScreen(),
+        NotificationScreen.routeName: (context) => NotificationScreen(),
+        AboutScreen.routeName: (context) => AboutScreen(),
+        InboxScreen.routeName: (context) => InboxScreen(),
+        MyOrderScreen.routeName: (context) => MyOrderScreen(),
+        CheckoutScreen.routeName: (context) => CheckoutScreen(),
+        ChangeAddressScreen.routeName: (context) => ChangeAddressScreen(),
+        NguoiDungPage.routeName: (context) => NguoiDungPage(),
+      },
     );
   }
 }

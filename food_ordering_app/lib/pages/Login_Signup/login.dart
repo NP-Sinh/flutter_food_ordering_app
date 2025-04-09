@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:food_ordering_app/api/api_nguoidung.dart';
 import 'package:food_ordering_app/models/NguoiDung.dart';
-import 'package:food_ordering_app/pages/Home/home.dart';
+import 'package:food_ordering_app/pages/NguoiDung/nguoidung_page.dart';
+import 'package:food_ordering_app/screens/forgetPwScreen.dart';
+import 'package:food_ordering_app/screens/signUpScreen.dart';
+import 'package:food_ordering_app/utils/helper.dart';
+import 'package:food_ordering_app/widgets/customTextInput.dart';
+import 'package:food_ordering_app/const/colors.dart';
+import 'package:food_ordering_app/screens/homeScreen.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class Login extends StatefulWidget {
+  static const routeName = "/login";
+
+  const Login({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<Login> createState() => _LoginState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _usernameController = TextEditingController();
@@ -33,23 +41,17 @@ class _LoginPageState extends State<LoginPage> {
         if (matchedUser != null) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(user: matchedUser),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.",
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => NguoiDungPage()),
           );
         }
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Có lỗi xảy ra: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.",
+            ),
+          ),
+        );
       }
     }
   }
@@ -64,62 +66,133 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Đăng nhập"),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: "Tên đăng nhập",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Vui lòng nhập tên đăng nhập";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: "Mật khẩu",
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Vui lòng nhập mật khẩu";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Colors.blue,
-                  ),
-                  child: const Text(
+      body: Container(
+        height: Helper.getScreenHeight(context),
+        width: Helper.getScreenWidth(context),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Text(
                     "Đăng nhập",
-                    style: TextStyle(fontSize: 16),
+                    style: Helper.getTheme(context).headlineSmall,
                   ),
-                ),
+                  const Spacer(),
+                  const Text(''),
+                  const Spacer(),
+                  CustomTextInput(
+                    hintText: "Tên đăng nhập",
+                    controller: _usernameController,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Vui lòng nhập tên đăng nhập";
+                      }
+                      return null;
+                    },
+                  ),
+                  const Spacer(),
+                  CustomTextInput(
+                    hintText: "Mật khẩu",
+                    controller: _passwordController,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Vui lòng nhập mật khẩu";
+                      }
+                      return null;
+                    },
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _login,
+                      child: const Text("Đăng nhập"),
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed(ForgetPwScreen.routeName);
+                    },
+                    child: const Text("Bạn quên mật khẩu?"),
+                  ),
+                  const Spacer(flex: 2),
+                  const Text("hoặc Đăng nhập với"),
+                  const Spacer(),
+                  SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                          Color(0xFF367FC0),
+                        ),
+                      ),
+                      onPressed: () {},
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(Helper.getAssetName("fb.png", "virtual")),
+                          const SizedBox(width: 30),
+                          const Text("Đăng nhập với Facebook"),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                          Color(0xFFDD4B39),
+                        ),
+                      ),
+                      onPressed: () {},
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            Helper.getAssetName("google.png", "virtual"),
+                          ),
+                          const SizedBox(width: 30),
+                          const Text("Đăng nhập với Google"),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Spacer(flex: 4),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed(SignUpPage.routeName);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Không có tài khoản?"),
+                        Text(
+                          "Đăng ký",
+                          style: TextStyle(
+                            color: AppColor.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

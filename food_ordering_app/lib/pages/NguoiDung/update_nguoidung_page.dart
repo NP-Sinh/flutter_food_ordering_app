@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:food_ordering_app/api/api_nguoidung.dart';
-import 'package:food_ordering_app/models/NguoiDung.dart';
 import 'package:intl/intl.dart';
+import 'package:food_ordering_app/const/colors.dart';
+import 'package:food_ordering_app/widgets/customNavBar.dart';
+import 'package:food_ordering_app/models/NguoiDung.dart';
+import 'package:food_ordering_app/api/api_nguoidung.dart';
+import 'package:food_ordering_app/utils/helper.dart';
+import 'package:food_ordering_app/utils/notification_util.dart';
 
 class UpdateNguoiDungPage extends StatefulWidget {
   final NguoiDung nguoiDung;
@@ -18,7 +22,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   final ApiNguoiDung _api = ApiNguoiDung();
 
-  Future<void> updateData() async {
+  void updateData() async {
     if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng kiểm tra lại thông tin')),
@@ -35,7 +39,10 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
       email: data['email'],
       soDienThoai: data['soDienThoai'],
       diaChi: data['diaChi'],
-      ngayTao: data['ngayTao'],
+      ngayTao:
+          data['ngayTao'] is String
+              ? DateFormat('dd-MM-yyyy').parse(data['ngayTao'])
+              : data['ngayTao'],
     );
 
     try {
@@ -44,119 +51,208 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
         nguoiDung: updated,
       );
 
+      if (!mounted) return;
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
+        NotificationUtil.showSuccessMessage(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Thành công')));
-        Navigator.pop(context, true);
-      } else {
-        throw Exception('Status code: ${response.statusCode}');
+          'Thành công!',
+          onComplete: () {
+            if (context.mounted) {
+              Navigator.pop(context, true);
+            }
+          },
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
+      NotificationUtil.showErrorMessage(
         context,
-      ).showSnackBar(SnackBar(content: Text('Thất bại: $e')));
+        'Thất bại!',
+        onComplete: () {
+          if (context.mounted) {
+            Navigator.pop(context, true);
+          }
+        },
+      );
     }
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(fontSize: 16, color: AppColor.primary),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColor.placeholder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColor.orange, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cập nhật người dùng'),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: FormBuilder(
-            key: _formKey,
-            initialValue: {
-              'tenDangNhap': widget.nguoiDung.tenDangNhap,
-              'matKhau': widget.nguoiDung.matKhau,
-              'hoTen': widget.nguoiDung.hoTen,
-              'email': widget.nguoiDung.email,
-              'soDienThoai': widget.nguoiDung.soDienThoai,
-              'diaChi': widget.nguoiDung.diaChi,
-              'ngayTao': widget.nguoiDung.ngayTao,
-            },
-            child: Column(
-              children: [
-                FormBuilderTextField(
-                  name: 'tenDangNhap',
-                  decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
-                  validator: FormBuilderValidators.required(),
-                ),
-                const SizedBox(height: 12),
-                FormBuilderTextField(
-                  name: 'matKhau',
-                  decoration: const InputDecoration(labelText: 'Mật khẩu'),
-                  obscureText: true,
-                  validator: FormBuilderValidators.required(),
-                ),
-                const SizedBox(height: 12),
-                FormBuilderTextField(
-                  name: 'hoTen',
-                  decoration: const InputDecoration(labelText: 'Họ và tên'),
-                  validator: FormBuilderValidators.required(),
-                ),
-                const SizedBox(height: 12),
-                FormBuilderTextField(
-                  name: 'email',
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(),
-                    FormBuilderValidators.email(),
-                  ]),
-                ),
-                const SizedBox(height: 12),
-                FormBuilderTextField(
-                  name: 'soDienThoai',
-                  decoration: const InputDecoration(labelText: 'Số điện thoại'),
-                  keyboardType: TextInputType.phone,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(
-                      errorText: 'Vui lòng nhập số điện thoại',
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 12,
                     ),
-                    FormBuilderValidators.match(
-                      RegExp(r'^\+?\d{7,15}$'),
-                      errorText: 'Số điện thoại không hợp lệ',
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 12),
-                FormBuilderTextField(
-                  name: 'diaChi',
-                  decoration: const InputDecoration(labelText: 'Địa chỉ'),
-                  validator: FormBuilderValidators.required(),
-                ),
-                const SizedBox(height: 12),
-                FormBuilderDateTimePicker(
-                  name: 'ngayTao',
-                  decoration: const InputDecoration(labelText: 'Ngày tạo'),
-                  inputType: InputType.date,
-                  format: DateFormat('dd-MM-yyyy'),
-                  validator: FormBuilderValidators.required(),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: updateData,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                      child: Text('Cập nhật', style: TextStyle(fontSize: 16)),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Icon(
+                            Icons.arrow_back_ios_rounded,
+                            color: AppColor.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "Cập nhật người dùng",
+                            style: Helper.getTheme(context).headlineMedium,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  FormBuilder(
+                    key: _formKey,
+                    initialValue: {
+                      'tenDangNhap': widget.nguoiDung.tenDangNhap,
+                      'matKhau': widget.nguoiDung.matKhau,
+                      'hoTen': widget.nguoiDung.hoTen,
+                      'email': widget.nguoiDung.email,
+                      'soDienThoai': widget.nguoiDung.soDienThoai,
+                      'diaChi': widget.nguoiDung.diaChi,
+                      'ngayTao': widget.nguoiDung.ngayTao,
+                    },
+                    child: Column(
+                      children: [
+                        FormBuilderTextField(
+                          name: 'tenDangNhap',
+                          decoration: _inputDecoration('Tên đăng nhập'),
+                          validator: FormBuilderValidators.required(
+                            errorText: 'Vui lòng nhập tên đăng nhập',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FormBuilderTextField(
+                          name: 'matKhau',
+                          decoration: _inputDecoration('Mật khẩu'),
+                          obscureText: true,
+                          validator: FormBuilderValidators.required(
+                            errorText: 'Vui lòng nhập mật khẩu',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FormBuilderTextField(
+                          name: 'hoTen',
+                          decoration: _inputDecoration('Họ và tên'),
+                          validator: FormBuilderValidators.required(
+                            errorText: 'Vui lòng nhập họ và tên',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FormBuilderTextField(
+                          name: 'email',
+                          decoration: _inputDecoration('Email'),
+                          keyboardType: TextInputType.emailAddress,
+                          validator: FormBuilderValidators.compose([
+                            FormBuilderValidators.required(
+                              errorText: 'Vui lòng nhập email',
+                            ),
+                            FormBuilderValidators.email(
+                              errorText: 'Email không hợp lệ',
+                            ),
+                          ]),
+                        ),
+                        const SizedBox(height: 16),
+                        FormBuilderTextField(
+                          name: 'soDienThoai',
+                          decoration: _inputDecoration('Số điện thoại'),
+                          keyboardType: TextInputType.phone,
+                          validator: FormBuilderValidators.compose([
+                            FormBuilderValidators.required(
+                              errorText: 'Vui lòng nhập số điện thoại',
+                            ),
+                            FormBuilderValidators.match(
+                              RegExp(r'^\+?\d{7,15}$'),
+                              errorText: 'Số điện thoại không hợp lệ',
+                            ),
+                          ]),
+                        ),
+                        const SizedBox(height: 16),
+                        FormBuilderTextField(
+                          name: 'diaChi',
+                          decoration: _inputDecoration('Địa chỉ'),
+                          validator: FormBuilderValidators.required(
+                            errorText: 'Vui lòng nhập địa chỉ',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FormBuilderDateTimePicker(
+                          name: 'ngayTao',
+                          decoration: _inputDecoration('Ngày tạo'),
+                          inputType: InputType.date,
+                          format: DateFormat('dd-MM-yyyy'),
+                          validator: FormBuilderValidators.required(
+                            errorText: 'Vui lòng chọn ngày',
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 50,
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: updateData,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColor.orange,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text(
+                              'Cập nhật',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
+      bottomNavigationBar: CustomNavBar(home: true),
     );
   }
 }
