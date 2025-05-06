@@ -2,8 +2,19 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:food_ordering_app/configs/DevHttpsOveride.dart';
+import 'package:food_ordering_app/pages/Admin/QL_MonAn/ql_mon_an_page.dart';
+import 'package:food_ordering_app/pages/Admin/QL_NhaHang/ql_nha_hang_page.dart';
+import 'package:food_ordering_app/pages/Admin/QL_TaiKhoan/ql_tai_khoan_page.dart';
+import 'package:food_ordering_app/pages/Admin/admin_page.dart';
+import 'package:food_ordering_app/pages/DonHang/chitiet_donhang_page.dart';
+import 'package:food_ordering_app/pages/MonAn/monan_page.dart';
+import 'package:food_ordering_app/pages/GioHang/giohang_page.dart';
 import 'package:food_ordering_app/pages/NguoiDung/nguoidung_page.dart';
+import 'package:food_ordering_app/pages/NhaHang/nhahang_page.dart';
+import 'package:food_ordering_app/pages/DonHang/donhang_page.dart';
+import 'package:food_ordering_app/pages/profile/profile_page.dart';
 import 'package:food_ordering_app/screens/changeAddressScreen.dart';
+import 'package:food_ordering_app/pages/Chat/chatbot_ai_page.dart';
 
 import './screens/spashScreen.dart';
 import 'package:food_ordering_app/pages/Welcome/Welcome_Page.dart';
@@ -98,6 +109,16 @@ class MyApp extends StatelessWidget {
         CheckoutScreen.routeName: (context) => CheckoutScreen(),
         ChangeAddressScreen.routeName: (context) => ChangeAddressScreen(),
         NguoiDungPage.routeName: (context) => NguoiDungPage(),
+        NhaHangPage.routeName: (context) => NhaHangPage(),
+        MonAnPage.routeName: (context) => MonAnPage(),
+        GioHangPage.routeName: (context) => GioHangPage(),
+        DonHangPage.routeName: (context) => DonHangPage(),
+        ProfilePage.routeName: (context) => ProfilePage(),
+        ChatbotAIPage.routeName: (context) => ChatbotAIPage(),
+        AdminPage.routeName: (context) => AdminPage(),
+        QLTaiKhoanPage.routeName: (context) => QLTaiKhoanPage(),
+        QLNhaHangPage.routeName: (context) => QLNhaHangPage(),
+        QLMonAnPage.routeName: (context) => QLMonAnPage(),
       },
     );
   }

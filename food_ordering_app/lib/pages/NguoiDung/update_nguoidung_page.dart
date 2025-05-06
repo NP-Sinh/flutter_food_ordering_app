@@ -8,6 +8,8 @@ import 'package:food_ordering_app/models/NguoiDung.dart';
 import 'package:food_ordering_app/api/api_nguoidung.dart';
 import 'package:food_ordering_app/utils/helper.dart';
 import 'package:food_ordering_app/utils/notification_util.dart';
+import 'package:food_ordering_app/utils/confirmation_dialog.dart';
+import 'package:food_ordering_app/utils/input_decoration_util.dart';
 
 class UpdateNguoiDungPage extends StatefulWidget {
   final NguoiDung nguoiDung;
@@ -22,6 +24,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   final ApiNguoiDung _api = ApiNguoiDung();
 
+  // Phương thức update
   void updateData() async {
     if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,28 +80,38 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
     }
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(fontSize: 16, color: AppColor.primary),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColor.placeholder),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColor.orange, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: Colors.redAccent),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-      ),
-    );
+  // Phương thức delete
+  void deleteData() async {
+    final confirm = await showConfirmationDialog(context);
+
+    if (confirm == true) {
+      try {
+        final response = await _api.deleteNguoiDung(
+          maNguoiDung: widget.nguoiDung.maNguoiDung,
+        );
+
+        if (!mounted) return;
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          NotificationUtil.showSuccessMessage(
+            context,
+            'Xoá thành công!',
+            onComplete: () {
+              if (context.mounted) {
+                Navigator.pop(context, true);
+              }
+            },
+          );
+        } else {
+          NotificationUtil.showErrorMessage(
+            context,
+            'Xoá thất bại: ${response.statusCode}',
+          );
+        }
+      } catch (e) {
+        NotificationUtil.showErrorMessage(context, 'Xoá thất bại!');
+      }
+    }
   }
 
   @override
@@ -111,6 +124,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8.0,
@@ -134,10 +148,22 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                             style: Helper.getTheme(context).headlineMedium,
                           ),
                         ),
+                        GestureDetector(
+                          onTap: deleteData,
+                          child: Image.asset(
+                            Helper.getAssetName(
+                              "icons8-trash-can-24.png",
+                              "virtual",
+                            ),
+                            width: 24,
+                            height: 24,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 10),
+                  // Form cập nhật thông tin người dùng
                   FormBuilder(
                     key: _formKey,
                     initialValue: {
@@ -153,7 +179,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                       children: [
                         FormBuilderTextField(
                           name: 'tenDangNhap',
-                          decoration: _inputDecoration('Tên đăng nhập'),
+                          decoration: buildInputDecoration('Tên đăng nhập'),
                           validator: FormBuilderValidators.required(
                             errorText: 'Vui lòng nhập tên đăng nhập',
                           ),
@@ -161,7 +187,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                         const SizedBox(height: 16),
                         FormBuilderTextField(
                           name: 'matKhau',
-                          decoration: _inputDecoration('Mật khẩu'),
+                          decoration: buildInputDecoration('Mật khẩu'),
                           obscureText: true,
                           validator: FormBuilderValidators.required(
                             errorText: 'Vui lòng nhập mật khẩu',
@@ -170,7 +196,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                         const SizedBox(height: 16),
                         FormBuilderTextField(
                           name: 'hoTen',
-                          decoration: _inputDecoration('Họ và tên'),
+                          decoration: buildInputDecoration('Họ và tên'),
                           validator: FormBuilderValidators.required(
                             errorText: 'Vui lòng nhập họ và tên',
                           ),
@@ -178,7 +204,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                         const SizedBox(height: 16),
                         FormBuilderTextField(
                           name: 'email',
-                          decoration: _inputDecoration('Email'),
+                          decoration: buildInputDecoration('Email'),
                           keyboardType: TextInputType.emailAddress,
                           validator: FormBuilderValidators.compose([
                             FormBuilderValidators.required(
@@ -192,7 +218,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                         const SizedBox(height: 16),
                         FormBuilderTextField(
                           name: 'soDienThoai',
-                          decoration: _inputDecoration('Số điện thoại'),
+                          decoration: buildInputDecoration('Số điện thoại'),
                           keyboardType: TextInputType.phone,
                           validator: FormBuilderValidators.compose([
                             FormBuilderValidators.required(
@@ -207,7 +233,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                         const SizedBox(height: 16),
                         FormBuilderTextField(
                           name: 'diaChi',
-                          decoration: _inputDecoration('Địa chỉ'),
+                          decoration: buildInputDecoration('Địa chỉ'),
                           validator: FormBuilderValidators.required(
                             errorText: 'Vui lòng nhập địa chỉ',
                           ),
@@ -215,7 +241,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
                         const SizedBox(height: 16),
                         FormBuilderDateTimePicker(
                           name: 'ngayTao',
-                          decoration: _inputDecoration('Ngày tạo'),
+                          decoration: buildInputDecoration('Ngày tạo'),
                           inputType: InputType.date,
                           format: DateFormat('dd-MM-yyyy'),
                           validator: FormBuilderValidators.required(
@@ -252,7 +278,7 @@ class _UpdateNguoiDungPageState extends State<UpdateNguoiDungPage> {
           ),
         ],
       ),
-      bottomNavigationBar: CustomNavBar(home: true),
+      bottomNavigationBar: const CustomNavBar(home: true),
     );
   }
 }

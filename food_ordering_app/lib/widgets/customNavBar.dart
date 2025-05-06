@@ -7,6 +7,7 @@ import '../screens/menuScreen.dart';
 import '../screens/moreScreen.dart';
 import '../screens/offerScreen.dart';
 import '../screens/profileScreen.dart';
+import '../pages/profile/profile_page.dart';
 import '../utils/helper.dart';
 
 class CustomNavBar extends StatelessWidget {
@@ -117,7 +118,7 @@ class CustomNavBar extends StatelessWidget {
                         if (!profile) {
                           Navigator.of(
                             context,
-                          ).pushReplacementNamed(ProfileScreen.routeName);
+                          ).pushReplacementNamed(ProfilePage.routeName);
                         }
                       },
                       child: Column(

@@ -27,6 +27,27 @@ class ApiNguoiDung {
     return data;
   }
 
+  // Lấy thông tin người dùng theo ID
+  Future<NguoiDung?> getNguoiDungById(int maNguoiDung) async {
+    final uri = Uri.parse("$baseUri/$maNguoiDung");
+    try {
+      final response = await http.get(
+        uri,
+        headers: <String, String>{
+          'Content-type': 'application/json; charset=UTF-8',
+        },
+      );
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        final dynamic jsonData = json.decode(response.body);
+        return NguoiDung.fromJson(jsonData);
+      }
+    } catch (e) {
+      print('Lỗi khi lấy thông tin người dùng: $e');
+      return null;
+    }
+    return null;
+  }
+
   Future<http.Response> updateNguoiDung({
     required int maNguoiDung,
     required NguoiDung nguoiDung,
@@ -40,7 +61,7 @@ class ApiNguoiDung {
         headers: <String, String>{
           'Content-type': 'application/json; charset=UTF-8',
         },
-        body: json.encode(nguoiDung),
+        body: json.encode(nguoiDung.toJson()),
       );
     } catch (e) {
       return response;
@@ -49,7 +70,7 @@ class ApiNguoiDung {
     return response;
   }
 
-  // Phương thức tạo người dùng mới
+  // Phương thức đăng ký người dùng mới
   Future<http.Response> createNguoiDung({required NguoiDung nguoiDung}) async {
     final uri = Uri.parse(baseUri);
     late http.Response response;
@@ -60,6 +81,23 @@ class ApiNguoiDung {
           'Content-type': 'application/json; charset=UTF-8',
         },
         body: json.encode(nguoiDung.toJson()),
+      );
+    } catch (e) {
+      return response;
+    }
+    return response;
+  }
+
+  // Delete
+  Future<http.Response> deleteNguoiDung({required int maNguoiDung}) async {
+    final uri = Uri.parse("$baseUri/$maNguoiDung");
+    late http.Response response;
+    try {
+      response = await http.delete(
+        uri,
+        headers: <String, String>{
+          'Content-type': 'application/json; charset=UTF-8',
+        },
       );
     } catch (e) {
       return response;

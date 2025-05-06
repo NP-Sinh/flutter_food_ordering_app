@@ -201,9 +201,9 @@ class IndividualItem extends StatelessWidget {
                                           ),
                                           child: Text(
                                             "Description",
-                                            style: Helper.getTheme(
-                                              context,
-                                            ).headlineLarge!.copyWith(fontSize: 16),
+                                            style: Helper.getTheme(context)
+                                                .headlineLarge!
+                                                .copyWith(fontSize: 16),
                                           ),
                                         ),
                                         SizedBox(height: 10),
@@ -232,9 +232,9 @@ class IndividualItem extends StatelessWidget {
                                           ),
                                           child: Text(
                                             "Customize your Order",
-                                            style: Helper.getTheme(
-                                              context,
-                                            ).headlineLarge!.copyWith(fontSize: 16),
+                                            style: Helper.getTheme(context)
+                                                .headlineLarge!
+                                                .copyWith(fontSize: 16),
                                           ),
                                         ),
                                         SizedBox(height: 10),

@@ -5,6 +5,7 @@ import '../utils/helper.dart';
 import '../widgets/customNavBar.dart';
 import '../screens/individualItem.dart';
 import 'package:food_ordering_app/widgets/searchBar.dart' as Custom;
+import 'package:food_ordering_app/pages/Chat/chatbot_ai_page.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = "/homeScreen";
@@ -28,7 +29,46 @@ class HomeScreen extends StatelessWidget {
                           "Good morning Akila!",
                           style: Helper.getTheme(context).headlineMedium,
                         ),
-                        Image.asset(Helper.getAssetName("cart.png", "virtual")),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(
+                                  context,
+                                ).pushNamed(ChatbotAIPage.routeName);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColor.orange,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.chat,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      "AI Trợ lý",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Image.asset(
+                              Helper.getAssetName("cart.png", "virtual"),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -242,6 +282,13 @@ class HomeScreen extends StatelessWidget {
           Positioned(bottom: 0, left: 0, child: CustomNavBar(home: true)),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColor.orange,
+        child: Icon(Icons.smart_toy, color: Colors.white),
+        onPressed: () {
+          Navigator.of(context).pushNamed(ChatbotAIPage.routeName);
+        },
+      ),
     );
   }
 }
@@ -332,7 +379,17 @@ class MostPopularCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Container(width: 300, height: 200, child: _image),
+          child: Container(
+            width: 300,
+            height: 200,
+            child:
+                _image != null
+                    ? _image
+                    : Image.asset(
+                      Helper.getAssetName("hamburger2.jpg", "real"),
+                      fit: BoxFit.cover,
+                    ),
+          ),
         ),
         SizedBox(height: 10),
         Text(

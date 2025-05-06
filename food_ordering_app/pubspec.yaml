@@ -15,8 +15,12 @@ dependencies:
   intl: ^0.19.0
   flutter_clip_shadow: ^1.0.0
   cupertino_icons: ^1.0.8
-
+  shared_preferences: ^2.0.8
   another_flushbar: ^1.12.30
+  google_generative_ai: ^0.2.1
+  chat_bubbles: ^1.5.0
+  flutter_spinkit: ^5.2.0
+  image_picker: ^1.1.2
   
 dev_dependencies:
   flutter_test:
@@ -26,6 +30,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/images/food/
     - assets/images/real/
     - assets/images/virtual/
   fonts:

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:food_ordering_app/api/api_nguoidung.dart';
 import 'package:food_ordering_app/models/NguoiDung.dart';
-import 'package:food_ordering_app/pages/NguoiDung/nguoidung_page.dart';
 import 'package:food_ordering_app/screens/forgetPwScreen.dart';
 import 'package:food_ordering_app/screens/signUpScreen.dart';
 import 'package:food_ordering_app/utils/helper.dart';
+import 'package:food_ordering_app/utils/notification_util.dart';
+import 'package:food_ordering_app/utils/shared_preferences_helper.dart';
 import 'package:food_ordering_app/widgets/customTextInput.dart';
 import 'package:food_ordering_app/const/colors.dart';
 import 'package:food_ordering_app/screens/homeScreen.dart';
@@ -32,25 +33,43 @@ class _LoginState extends State<Login> {
       final password = _passwordController.text.trim();
 
       try {
+        if (username == "Admin" && password == "123") {
+          Navigator.pushReplacementNamed(context, '/AdminPage');
+          // Hiển thị thông báo đăng nhập thành công
+          return NotificationUtil.showSuccessMessage(
+            context,
+            'Đăng nhập thành công!',
+          );
+        }
+
         final List<NguoiDung> users = await _apiNguoiDung.getNguoiDungData();
 
         final NguoiDung? matchedUser = users.firstWhere(
           (user) => user.tenDangNhap == username && user.matKhau == password,
+          orElse: () => throw Exception("Tài khoản hoặc mật khẩu không đúng"),
         );
 
-        if (matchedUser != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => NguoiDungPage()),
-          );
-        }
+        // Lưu mã người dùng vào SharedPreferences
+        await luuNguoiDungDangNhap(matchedUser!.maNguoiDung);
+
+        // Hiển thị thông báo đăng nhập thành công
+        NotificationUtil.showSuccessMessage(
+          context,
+          'Đăng nhập thành công!',
+          onComplete: () {
+            if (!mounted) return;
+            Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+          },
+        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.",
-            ),
-          ),
+        NotificationUtil.showErrorMessage(
+          context,
+          'Đăng nhập thất bại! vui lòng kiểm tra lại',
+          onComplete: () {
+            if (context.mounted) {
+              Navigator.pop(context, true);
+            }
+          },
         );
       }
     }

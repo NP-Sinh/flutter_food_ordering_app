@@ -5,6 +5,7 @@ import 'package:food_ordering_app/pages/NguoiDung/update_nguoidung_page.dart';
 import 'package:food_ordering_app/utils/helper.dart';
 import 'package:food_ordering_app/widgets/customNavBar.dart';
 import 'package:food_ordering_app/const/colors.dart';
+import 'package:food_ordering_app/widgets/searchBar.dart' as Custom;
 
 class NguoiDungPage extends StatefulWidget {
   static const routeName = "/nguoiDungPage";
@@ -16,11 +17,32 @@ class NguoiDungPage extends StatefulWidget {
 
 class _NguoiDungPageState extends State<NguoiDungPage> {
   ApiNguoiDung apiNguoiDung = ApiNguoiDung();
-  late List<NguoiDung> data = [];
+  List<NguoiDung> data = [];
+  List<NguoiDung> filteredData = [];
 
   void getData() async {
     data = await apiNguoiDung.getNguoiDungData();
+    filteredData = data;
     setState(() {});
+  }
+
+  // Hàm tìm kiếm
+  void _filterSearch(String keyword) {
+    setState(() {
+      if (keyword.isEmpty) {
+        filteredData = data;
+      } else {
+        filteredData =
+            data.where((nguoiDung) {
+              return nguoiDung.hoTen!.toLowerCase().contains(
+                    keyword.toLowerCase(),
+                  ) ||
+                  nguoiDung.email!.toLowerCase().contains(
+                    keyword.toLowerCase(),
+                  );
+            }).toList();
+      }
+    });
   }
 
   @override
@@ -40,7 +62,7 @@ class _NguoiDungPageState extends State<NguoiDungPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header tùy chỉnh
+                  // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8.0,
@@ -67,14 +89,21 @@ class _NguoiDungPageState extends State<NguoiDungPage> {
                       ],
                     ),
                   ),
+
+                  // Search bar
+                  Custom.SearchBar(
+                    title: "Tìm kiếm người dùng khác",
+                    onChanged: _filterSearch,
+                  ),
                   const SizedBox(height: 10),
+
                   // Danh sách người dùng
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: data.length,
+                    itemCount: filteredData.length,
                     itemBuilder: (context, index) {
-                      final nguoiDung = data[index];
+                      final nguoiDung = filteredData[index];
                       return GestureDetector(
                         onTap: () async {
                           final result = await Navigator.push(
@@ -107,13 +136,13 @@ class _NguoiDungPageState extends State<NguoiDungPage> {
                               ),
                             ),
                             title: Text(
-                              nguoiDung.hoTen,
+                              nguoiDung.hoTen!,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
                             ),
-                            subtitle: Text(nguoiDung.email),
+                            subtitle: Text(nguoiDung.email!),
                             trailing: const Icon(
                               Icons.arrow_forward_ios,
                               size: 16,

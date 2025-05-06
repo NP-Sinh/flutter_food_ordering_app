@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_ordering_app/const/colors.dart';
+import 'package:food_ordering_app/pages/MonAn/monan_page.dart';
+import 'package:food_ordering_app/pages/NhaHang/nhahang_page.dart';
 import 'package:food_ordering_app/screens/dessertScreen.dart';
 import 'package:food_ordering_app/utils/helper.dart';
 import 'package:food_ordering_app/widgets/customNavBar.dart';
@@ -54,35 +56,56 @@ class MenuScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            MenuCard(
-                              imageShape: ClipOval(
-                                child: Container(
-                                  height: 60,
-                                  width: 60,
-                                  child: Image.asset(
-                                    Helper.getAssetName("western2.jpg", "real"),
-                                    fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(
+                                  context,
+                                ).pushNamed(MonAnPage.routeName);
+                              },
+                              child: MenuCard(
+                                imageShape: ClipOval(
+                                  child: Container(
+                                    height: 60,
+                                    width: 60,
+                                    child: Image.asset(
+                                      Helper.getAssetName(
+                                        "western2.jpg",
+                                        "real",
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
+                                name: "Food",
+                                count: "120",
                               ),
-                              name: "Food",
-                              count: "120",
                             ),
+
                             SizedBox(height: 20),
-                            MenuCard(
-                              imageShape: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
-                                  height: 60,
-                                  width: 60,
-                                  child: Image.asset(
-                                    Helper.getAssetName("coffee2.jpg", "real"),
-                                    fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(
+                                  context,
+                                ).pushNamed(NhaHangPage.routeName);
+                              },
+                              child: MenuCard(
+                                imageShape: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    height: 60,
+                                    width: 60,
+                                    child: Image.asset(
+                                      Helper.getAssetName(
+                                        "restaurant.jpg",
+                                        "real",
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
+                                name: "Nhà hàng",
+                                count: "220",
                               ),
-                              name: "Beverage",
-                              count: "220",
                             ),
                             SizedBox(height: 20),
                             GestureDetector(
