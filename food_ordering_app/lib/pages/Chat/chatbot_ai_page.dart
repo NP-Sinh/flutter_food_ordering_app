@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import '../../api/api_chatbot.dart';
-import '../../api/api_monan.dart';
-import '../../models/MonAn.dart';
 import '../../utils/gemini_service.dart';
 import '../../const/colors.dart';
 
@@ -19,10 +16,8 @@ class ChatbotAIPage extends StatefulWidget {
 class _ChatbotAIPageState extends State<ChatbotAIPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final ApiChatbot _apiChatbot = ApiChatbot();
-  final ApiMonAn _apiMonAn = ApiMonAn();
 
-  // Khởi tạo trong initState để tránh lỗi
+  // Khởi tạo trong initState
   late final GeminiService _geminiService;
 
   bool _isLoading = false;
@@ -109,43 +104,9 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
       response = _getBasicResponse(userMessage);
     } else {
       try {
-        // Phân tích ý định người dùng
-        final intentType = _geminiService.analyzeUserIntent(userMessage);
-        List<MonAn>? relatedFoods;
-
-        // Lấy dữ liệu từ API dựa trên ý định
-        try {
-          switch (intentType) {
-            case IntentType.bestSelling:
-              relatedFoods = await _apiChatbot.getBestSellingFoods();
-              break;
-            case IntentType.mostExpensive:
-              relatedFoods = await _apiChatbot.getMostExpensiveFoods();
-              break;
-            case IntentType.cheapest:
-              relatedFoods = await _apiChatbot.getCheapestFoods();
-              break;
-            case IntentType.search:
-              final keyword = _geminiService.extractSearchKeyword(userMessage);
-              relatedFoods = await _apiChatbot.searchFoodsByKeyword(keyword);
-              break;
-            case IntentType.generalChat:
-              // Không cần dữ liệu từ API
-              break;
-          }
-        } catch (e) {
-          print('Lỗi khi tìm nạp dữ liệu: $e');
-        }
-
-        // Tạo prompt với dữ liệu đã lấy được và gửi đến Gemini
-        final prompt = _geminiService.createPromptWithData(
-          userMessage,
-          relatedFoods,
-        );
-        response = await _geminiService.getChatResponse(prompt);
-
-        // Lưu lịch sử chat (giả sử userId = 1)
-        _apiChatbot.saveChatHistory(1, userMessage, response);
+        // Sử dụng phương thức processUserQuestion mới để xử lý câu hỏi
+        // Phương thức này sẽ tự động lấy dữ liệu, phân tích câu hỏi và trả lời
+        response = await _geminiService.processUserQuestion(userMessage);
       } catch (e) {
         print('Lỗi khi xử lý tin nhắn: $e');
         setState(() {
@@ -170,7 +131,7 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
     _scrollToBottom();
   }
 
-  // Tạo câu trả lời cơ bản cho trường hợp API không hoạt động
+  // Tạo câu trả lời cơ bản
   String _getBasicResponse(String message) {
     final lowerMessage = message.toLowerCase();
 
