@@ -1,7 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import '../../utils/gemini_service.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http;
 import '../../const/colors.dart';
 
 class ChatbotAIPage extends StatefulWidget {
@@ -17,21 +19,21 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // Khởi tạo trong initState
-  late final GeminiService _geminiService;
+  final String _apiKey = 'AIzaSyAbXpAtR4CNcqu04YGcl8B0KgtTFKpLLxE';
+  late final GenerativeModel _model;
 
   bool _isLoading = false;
   bool _geminiError = false;
   List<ChatMessage> _messages = [];
+  bool _isDataLoaded = false;
+  Uint8List? _csvData;
 
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService(
-      apiKey: 'AIzaSyAbXpAtR4CNcqu04YGcl8B0KgtTFKpLLxE',
-    );
+    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
 
-    // Thêm tin nhắn chào mừng
+    // tin nhắn chào mừng
     _messages.add(
       ChatMessage(
         message:
@@ -40,22 +42,80 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
         timestamp: DateTime.now(),
       ),
     );
-
-    // Kiểm tra API key
-    _testGeminiAPI();
+    _loadCSVData();
   }
 
-  Future<void> _testGeminiAPI() async {
+  // Cung cấp dữ liệu CSV cho AI
+  Future<void> _loadCSVData() async {
     try {
-      final response = await _geminiService.getChatResponse(
-        'Hãy trả lời "OK" nếu API đang hoạt động',
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:5000/api/MonAn/GetCSVData'),
       );
-      print('Test API response: $response');
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _csvData = response.bodyBytes;
+          _isDataLoaded = true;
+        });
+        print('Đã tải dữ liệu CSV thành công');
+      } else {
+        print('Không thể tải file CSV: ${response.statusCode}');
+      }
     } catch (e) {
-      setState(() {
-        _geminiError = true;
-      });
-      print('Lỗi khi test API: $e');
+      print('Lỗi khi tải dữ liệu CSV: $e');
+    }
+  }
+
+  // Gửi câu hỏi đến Gemini với dữ liệu CSV
+  Future<String> _processCSVQuestion(String userQuestion) async {
+    try {
+      if (_csvData == null) {
+        return 'Đang tải dữ liệu món ăn. Vui lòng thử lại sau.';
+      }
+
+      final content = [
+        Content.multi([
+          DataPart('text/csv', _csvData!),
+          TextPart('''
+Bạn là trợ lý AI của ứng dụng đặt đồ ăn. Hãy trả lời câu hỏi sau của khách hàng dựa trên dữ liệu món ăn được cung cấp trong file CSV.
+
+Câu hỏi: $userQuestion
+
+Phân tích câu hỏi và trả lời dựa trên dữ liệu món ăn. Nếu câu hỏi liên quan đến:
+1. Món bán chạy nhất: Giả định 5 món đầu tiên là bán chạy nhất
+2. Món đắt nhất: Tìm món có giá cao nhất
+3. Món rẻ nhất: Tìm món có giá thấp nhất
+4. Tìm món theo khoảng giá: Lọc các món có giá trong khoảng được hỏi
+5. Tìm món có giá từ một mức nhất định: Lọc các món có giá từ mức được hỏi trở lên
+6. Tìm món có giá chính xác: Lọc các món có giá chính xác như được hỏi
+7. Tìm món theo từ khóa: Tìm các món có tên hoặc mô tả chứa từ khóa
+8. Tìm món theo nhà hàng: Lọc các món thuộc nhà hàng được hỏi
+9. Khi trả lời câu hỏi về món ăn thuộc nhà hàng nào, hãy luôn nêu rõ tên nhà hàng trong câu trả lời.
+
+Trả lời một cách thân thiện và hữu ích. Nếu không có thông tin, hãy thành thật nói rằng bạn không biết.
+'''),
+        ]),
+      ];
+
+      final result = await _model.generateContent(content);
+      return result.text ??
+          'Xin lỗi, tôi không thể trả lời câu hỏi vào lúc này.';
+    } catch (e) {
+      print('Lỗi khi xử lý câu hỏi với CSV: $e');
+      return 'Đã xảy ra lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.';
+    }
+  }
+
+  // Xử lý câu hỏi không liên quan đến dữ liệu món ăn
+  Future<String> _processGeneralQuestion(String userQuestion) async {
+    try {
+      final content = Content.text(userQuestion);
+      final result = await _model.generateContent([content]);
+      return result.text ??
+          'Xin lỗi, tôi không thể trả lời câu hỏi vào lúc này.';
+    } catch (e) {
+      print('Lỗi khi xử lý câu hỏi thông thường: $e');
+      return 'Đã xảy ra lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.';
     }
   }
 
@@ -78,6 +138,7 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
     });
   }
 
+  //Nhận câu hỏi và chuyển cho AI để nhận câu trả lời
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
@@ -100,13 +161,24 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
     String response = '';
 
     if (_geminiError) {
-      // Nếu Gemini không hoạt động, xử lý tại chỗ với câu trả lời cơ bản
-      response = _getBasicResponse(userMessage);
+      response = 'Xin lỗi, hiện tại tôi không thể xử lý yêu cầu của bạn.';
     } else {
       try {
-        // Sử dụng phương thức processUserQuestion mới để xử lý câu hỏi
-        // Phương thức này sẽ tự động lấy dữ liệu, phân tích câu hỏi và trả lời
-        response = await _geminiService.processUserQuestion(userMessage);
+        // Kiểm tra xem câu hỏi có liên quan đến món ăn không
+        final lowerMessage = userMessage.toLowerCase();
+        if (lowerMessage.contains('món') ||
+            lowerMessage.contains('ăn') ||
+            lowerMessage.contains('nhà hàng') ||
+            lowerMessage.contains('giá') ||
+            lowerMessage.contains('đắt') ||
+            lowerMessage.contains('rẻ') ||
+            lowerMessage.contains('bán chạy')) {
+          // Xử lý câu hỏi liên quan đến món ăn với dữ liệu CSV
+          response = await _processCSVQuestion(userMessage);
+        } else {
+          // Xử lý câu hỏi không liên quan đến dữ liệu món ăn
+          response = await _processGeneralQuestion(userMessage);
+        }
       } catch (e) {
         print('Lỗi khi xử lý tin nhắn: $e');
         setState(() {
@@ -127,34 +199,7 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
       );
       _isLoading = false;
     });
-
     _scrollToBottom();
-  }
-
-  // Tạo câu trả lời cơ bản
-  String _getBasicResponse(String message) {
-    final lowerMessage = message.toLowerCase();
-
-    if (lowerMessage.contains('món ăn bán chạy') ||
-        lowerMessage.contains('bán nhiều nhất')) {
-      return 'Xin lỗi, hiện tại tôi không thể kết nối với cơ sở dữ liệu để lấy thông tin về món ăn bán chạy nhất. Vui lòng thử lại sau.';
-    }
-
-    if (lowerMessage.contains('món ăn đắt nhất') ||
-        lowerMessage.contains('giá cao nhất')) {
-      return 'Xin lỗi, hiện tại tôi không thể kết nối với cơ sở dữ liệu để lấy thông tin về món ăn đắt nhất. Vui lòng thử lại sau.';
-    }
-
-    if (lowerMessage.contains('món ăn rẻ nhất') ||
-        lowerMessage.contains('giá thấp nhất')) {
-      return 'Xin lỗi, hiện tại tôi không thể kết nối với cơ sở dữ liệu để lấy thông tin về món ăn rẻ nhất. Vui lòng thử lại sau.';
-    }
-
-    if (lowerMessage.contains('tìm') || lowerMessage.contains('kiếm')) {
-      return 'Xin lỗi, hiện tại tôi không thể kết nối với cơ sở dữ liệu để tìm kiếm món ăn. Vui lòng thử lại sau.';
-    }
-
-    return 'Xin lỗi, hiện tại tôi không thể xử lý yêu cầu của bạn. Dịch vụ AI đang gặp sự cố, chúng tôi đang khắc phục vấn đề này. Vui lòng thử lại sau.';
   }
 
   @override
@@ -163,6 +208,29 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
       appBar: AppBar(
         title: const Text('Chat với AI Trợ lý'),
         backgroundColor: AppColor.orange,
+        actions: [
+          // Hiển thị trạng thái kết nối dữ liệu
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _isDataLoaded ? Colors.green : Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _isDataLoaded ? 'Đã tải dữ liệu' : 'Đang tải...',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -207,21 +275,6 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
                       isSender: false,
                     );
               },
-            ),
-          ),
-          // Gợi ý câu hỏi nhanh
-          Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildQuickSuggestion('Món ăn bán chạy nhất?'),
-                _buildQuickSuggestion('Món ăn đắt nhất?'),
-                _buildQuickSuggestion('Món ăn rẻ nhất?'),
-                _buildQuickSuggestion('Tìm món cơm'),
-                _buildQuickSuggestion('Các món ăn healthy'),
-              ],
             ),
           ),
           Container(
@@ -272,27 +325,6 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuickSuggestion(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: InkWell(
-        onTap: () {
-          _messageController.text = text;
-          _sendMessage();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Text(text, style: TextStyle(color: AppColor.orange)),
-        ),
       ),
     );
   }

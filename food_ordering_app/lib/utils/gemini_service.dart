@@ -15,9 +15,8 @@ class GeminiService {
 
   // Lấy tất cả dữ liệu món ăn từ CSV
   Future<List<MonAn>> getAllFoods() async {
-    // Sử dụng cache nếu đã có
     if (_cachedFoods != null) return _cachedFoods!;
-
+  
     final csvData = await readCSVData();
     _cachedFoods = await convertCSVToMonAn(csvData);
     return _cachedFoods!;
@@ -92,7 +91,7 @@ class GeminiService {
     return monAns;
   }
 
-  // Phương thức chính để xử lý câu hỏi của người dùng
+  //  xử lý câu hỏi của người dùng
   Future<String> processUserQuestion(String userMessage) async {
     try {
       // Lấy tất cả dữ liệu món ăn
@@ -136,16 +135,6 @@ Dữ liệu món ăn:
 $foodsData
 
 Phân tích câu hỏi và trả lời dựa trên dữ liệu món ăn. Nếu câu hỏi liên quan đến:
-1. Món bán chạy nhất: Giả định 5 món đầu tiên là bán chạy nhất
-2. Món đắt nhất: Tìm món có giá cao nhất
-3. Món rẻ nhất: Tìm món có giá thấp nhất
-4. Tìm món theo khoảng giá: Lọc các món có giá trong khoảng được hỏi
-5. Tìm món có giá từ một mức nhất định: Lọc các món có giá từ mức được hỏi trở lên
-6. Tìm món có giá chính xác: Lọc các món có giá chính xác như được hỏi
-7. Tìm món theo từ khóa: Tìm các món có tên hoặc mô tả chứa từ khóa
-8. Tìm món theo nhà hàng: Lọc các món thuộc nhà hàng được hỏi
-9. Khi trả lời câu hỏi về món ăn thuộc nhà hàng nào, hãy luôn nêu rõ tên nhà hàng trong câu trả lời.
-10. Liệt kê món theo từ khóa: Liệt kê các món có tên hoặc mô tả chứa từ khóa
 
 Trả lời một cách thân thiện và hữu ích.
 ''';
