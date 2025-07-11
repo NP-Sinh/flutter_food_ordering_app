@@ -31,7 +31,7 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
   @override
   void initState() {
     super.initState();
-    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+    _model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
 
     // tin nhắn chào mừng
     _messages.add(
@@ -67,7 +67,7 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
   }
 
   // Gửi câu hỏi đến Gemini với dữ liệu CSV
-  Future<String> _processCSVQuestion(String userQuestion) async {
+  Future<String> _processCSVQuestion(String userMessage) async {
     try {
       if (_csvData == null) {
         return 'Đang tải dữ liệu món ăn. Vui lòng thử lại sau.';
@@ -77,44 +77,24 @@ class _ChatbotAIPageState extends State<ChatbotAIPage> {
         Content.multi([
           DataPart('text/csv', _csvData!),
           TextPart('''
-Bạn là trợ lý AI của ứng dụng đặt đồ ăn. Hãy trả lời câu hỏi sau của khách hàng dựa trên dữ liệu món ăn được cung cấp trong file CSV.
+Bạn là trợ lý AI của ứng dụng đặt đồ ăn. Dựa trên dữ liệu món ăn trong file CSV, hãy trả lời câu hỏi sau:
 
-Câu hỏi: $userQuestion
+"$userMessage"
 
-Phân tích câu hỏi và trả lời dựa trên dữ liệu món ăn. Nếu câu hỏi liên quan đến:
-1. Món bán chạy nhất: Giả định 5 món đầu tiên là bán chạy nhất
-2. Món đắt nhất: Tìm món có giá cao nhất
-3. Món rẻ nhất: Tìm món có giá thấp nhất
-4. Tìm món theo khoảng giá: Lọc các món có giá trong khoảng được hỏi
-5. Tìm món có giá từ một mức nhất định: Lọc các món có giá từ mức được hỏi trở lên
-6. Tìm món có giá chính xác: Lọc các món có giá chính xác như được hỏi
-7. Tìm món theo từ khóa: Tìm các món có tên hoặc mô tả chứa từ khóa
-8. Tìm món theo nhà hàng: Lọc các món thuộc nhà hàng được hỏi
-9. Khi trả lời câu hỏi về món ăn thuộc nhà hàng nào, hãy luôn nêu rõ tên nhà hàng trong câu trả lời.
+Lưu ý:
+1. Giá tiền: thì hiển thị giá tiền theo đơn vị tiền tệ Việt Nam (VNĐ).
+2. Ngày tháng năm: thì hiển thị ngày tháng năm theo định dạng Việt Nam (dd/mm/yyyy).
 
-Trả lời một cách thân thiện và hữu ích. Nếu không có thông tin, hãy thành thật nói rằng bạn không biết.
+Trả lời thân thiện, ngắn gọn, rõ ràng, dễ hiểu.
 '''),
         ]),
       ];
 
-      final result = await _model.generateContent(content);
+      final result = await _model.generateContent(content); 
       return result.text ??
           'Xin lỗi, tôi không thể trả lời câu hỏi vào lúc này.';
     } catch (e) {
       print('Lỗi khi xử lý câu hỏi với CSV: $e');
-      return 'Đã xảy ra lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.';
-    }
-  }
-
-  // Xử lý câu hỏi không liên quan đến dữ liệu món ăn
-  Future<String> _processGeneralQuestion(String userQuestion) async {
-    try {
-      final content = Content.text(userQuestion);
-      final result = await _model.generateContent([content]);
-      return result.text ??
-          'Xin lỗi, tôi không thể trả lời câu hỏi vào lúc này.';
-    } catch (e) {
-      print('Lỗi khi xử lý câu hỏi thông thường: $e');
       return 'Đã xảy ra lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.';
     }
   }
@@ -159,34 +139,11 @@ Trả lời một cách thân thiện và hữu ích. Nếu không có thông ti
     _scrollToBottom();
 
     String response = '';
-
-    if (_geminiError) {
-      response = 'Xin lỗi, hiện tại tôi không thể xử lý yêu cầu của bạn.';
-    } else {
-      try {
-        // Kiểm tra xem câu hỏi có liên quan đến món ăn không
-        final lowerMessage = userMessage.toLowerCase();
-        if (lowerMessage.contains('món') ||
-            lowerMessage.contains('ăn') ||
-            lowerMessage.contains('nhà hàng') ||
-            lowerMessage.contains('giá') ||
-            lowerMessage.contains('đắt') ||
-            lowerMessage.contains('rẻ') ||
-            lowerMessage.contains('bán chạy')) {
-          // Xử lý câu hỏi liên quan đến món ăn với dữ liệu CSV
-          response = await _processCSVQuestion(userMessage);
-        } else {
-          // Xử lý câu hỏi không liên quan đến dữ liệu món ăn
-          response = await _processGeneralQuestion(userMessage);
-        }
-      } catch (e) {
-        print('Lỗi khi xử lý tin nhắn: $e');
-        setState(() {
-          _geminiError = true;
-        });
-        response =
-            'Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.';
-      }
+    try {
+      response = await _processCSVQuestion(userMessage);
+    } catch (e) {
+      print('Lỗi khi xử lý tin nhắn: $e');
+      response = 'Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.';
     }
 
     setState(() {
